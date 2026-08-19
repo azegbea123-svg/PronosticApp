@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1B1F27</color>
-    <color name="ic_launcher_background">#1B1F27</color>
+    <color name="colorPrimary">#10141C</color>
+    <color name="ember_orange">#E4572E</color>
+    <color name="floodlight_gold">#F5B942</color>
+    <color name="ic_launcher_background">#10141C</color>
+    <color name="turf_green">#3FA34D</color>
     <string name="app_name">PronosticApp</string>
-    <style name="Theme.PronosticApp" parent="android:Theme.Material.NoActionBar"/>
+    <style name="Theme.PronosticApp" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
+        <item name="android:statusBarColor">@color/ic_launcher_background</item>
+    </style>
 </resources>
