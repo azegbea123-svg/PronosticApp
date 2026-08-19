@@ -7,19 +7,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // 🧪 TEST LOCAL (émulateur) : 10.0.2.2 est l'adresse spéciale par laquelle
-    // l'émulateur Android atteint le "localhost" de ta machine. Ton serveur
-    // FastAPI doit tourner en local (uvicorn app.main:app --reload) pour que
-    // ça fonctionne.
-    //
-    // ⚠️ Si tu testes sur un téléphone physique (pas l'émulateur), remplace
-    // par l'IP locale de ton PC sur le réseau Wi-Fi (ex: "http://192.168.1.42:8000/",
-    // trouvable avec `ipconfig` sous Windows) — 10.0.2.2 ne fonctionne QUE
-    // pour l'émulateur.
-    //
-    // 🚀 Une fois le backend déployé (Railway/Render/etc.), remplace cette
-    // ligne par l'URL publique en HTTPS, ex: "https://ton-backend.up.railway.app/"
-    private const val BASE_URL = "http://10.0.2.2:8000/"
+    // 🚀 PRODUCTION : backend déployé sur Render, accessible en HTTPS
+    // depuis n'importe quel réseau (plus besoin que le PC local tourne).
+    private const val BASE_URL = "https://pronosticapp-backend.onrender.com/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

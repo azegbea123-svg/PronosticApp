@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pronosticapp.data.EquipesConnues
 import com.example.pronosticapp.model.MatchAnalysisRequest
 import com.example.pronosticapp.model.MatchAnalysisResponse
 import com.example.pronosticapp.network.RetrofitClient
@@ -292,6 +294,10 @@ private fun TeamField(
     accent: Color,
     modifier: Modifier = Modifier
 ) {
+    var estFocus by remember { mutableStateOf(false) }
+    val suggestions = remember(value) { EquipesConnues.suggestions(value, limite = 4) }
+    val afficherSuggestions = estFocus && suggestions.isNotEmpty()
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         OutlinedTextField(
@@ -308,8 +314,37 @@ private fun TeamField(
                 cursorColor = accent
             ),
             shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { estFocus = it.isFocused }
         )
+
+        // Suggestions locales — filtrage instantané, aucun appel réseau.
+        // La saisie libre reste toujours possible même si rien ne correspond.
+        if (afficherSuggestions) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(PanelRaised)
+                    .border(1.dp, PitchLine, RoundedCornerShape(10.dp))
+            ) {
+                suggestions.forEach { suggestion ->
+                    Text(
+                        text = suggestion,
+                        color = TextPrimary,
+                        fontSize = 13.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onValueChange(suggestion)
+                                estFocus = false
+                            }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
