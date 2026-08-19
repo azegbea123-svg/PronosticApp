@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.example.pronosticapp-debug-41:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.example.pronosticapp-main-43:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.example.pronosticapp-debug-41:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.example.pronosticapp-main-43:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.example.pronosticapp-debug-41:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.example.pronosticapp-main-43:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    }
+]

@@ -13,7 +13,13 @@ import androidx.compose.ui.unit.dp
 import com.example.pronosticapp.model.MatchAnalysisRequest
 import com.example.pronosticapp.model.MatchAnalysisResponse
 import com.example.pronosticapp.network.RetrofitClient
+import com.example.pronosticapp.network.MockAnalysisProvider
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// 🔧 INTERRUPTEUR : true = données simulées (aucun backend requis, pour tester l'appli
+// dès maintenant), false = appels réels vers le backend une fois celui-ci déployé.
+const val USE_MOCK_DATA = true
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +54,14 @@ fun PronosticScreen() {
     ) {
         Text("Analyse de match", style = MaterialTheme.typography.headlineSmall)
 
+        if (USE_MOCK_DATA) {
+            Text(
+                "Mode test : résultats simulés (backend non connecté)",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
         OutlinedTextField(
             value = equipe1,
             onValueChange = { equipe1 = it },
@@ -75,13 +89,19 @@ fun PronosticScreen() {
                 enCours = true
                 scope.launch {
                     try {
-                        val response = RetrofitClient.apiService.analyserMatch(
-                            MatchAnalysisRequest(equipe1, equipe2, typeMatch)
-                        )
-                        if (response.isSuccessful) {
-                            resultat = response.body()
+                        if (USE_MOCK_DATA) {
+                            // Mode test : pas d'appel réseau, résultat simulé instantané
+                            delay(600) // simule un temps de traitement réaliste
+                            resultat = MockAnalysisProvider.generer(equipe1, equipe2, typeMatch)
                         } else {
-                            erreur = "Erreur serveur : ${response.code()}"
+                            val response = RetrofitClient.apiService.analyserMatch(
+                                MatchAnalysisRequest(equipe1, equipe2, typeMatch)
+                            )
+                            if (response.isSuccessful) {
+                                resultat = response.body()
+                            } else {
+                                erreur = "Erreur serveur : ${response.code()}"
+                            }
                         }
                     } catch (e: Exception) {
                         erreur = "Erreur réseau : ${e.message}"

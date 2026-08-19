@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1B1F27</color>
+    <color name="ic_launcher_background">#1B1F27</color>
+    <string name="app_name">PronosticApp</string>
+    <style name="Theme.PronosticApp" parent="android:Theme.Material.NoActionBar"/>
+</resources>
