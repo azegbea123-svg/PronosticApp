@@ -7,6 +7,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
 fun PronosticScreen() {
     var equipe1 by remember { mutableStateOf("") }
     var equipe2 by remember { mutableStateOf("") }
-    var typeMatch by remember { mutableStateOf("championnat") }
+    var typeMatch by remember { mutableStateOf("Ligue 1") }
     var resultat by remember { mutableStateOf<MatchAnalysisResponse?>(null) }
     var enCours by remember { mutableStateOf(false) }
     var erreur by remember { mutableStateOf<String?>(null) }
@@ -277,14 +278,31 @@ private fun MatchupCard(
                 letterSpacing = 1.sp,
                 fontWeight = FontWeight.SemiBold
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MatchTypeChip("Championnat", "championnat", typeMatch, onTypeMatchChange)
-                MatchTypeChip("Coupe", "coupe", typeMatch, onTypeMatchChange)
-                MatchTypeChip("Amical", "amical", typeMatch, onTypeMatchChange)
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TYPES_DE_MATCH.forEach { (libelle, valeur) ->
+                    MatchTypeChip(libelle, valeur, typeMatch, onTypeMatchChange)
+                }
             }
         }
     }
 }
+
+// Ligues principales + catégories génériques. La valeur (deuxième élément)
+// est ce qui est envoyé au backend et inséré dans le résumé du pronostic.
+private val TYPES_DE_MATCH = listOf(
+    "Ligue 1" to "Ligue 1",
+    "LaLiga" to "LaLiga",
+    "Premier League" to "Premier League",
+    "Serie A" to "Serie A",
+    "Bundesliga" to "Bundesliga",
+    "Primeira Liga" to "Primeira Liga",
+    "Ligue des Champions" to "Ligue des Champions",
+    "Coupe" to "coupe",
+    "Amical" to "amical"
+)
 
 @Composable
 private fun TeamField(
@@ -462,6 +480,89 @@ private fun ResultBlock(r: MatchAnalysisResponse) {
             )
         }
 
+        // Carte marchés — over/under, BTTS, scores les plus probables
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(PanelNight)
+                .border(1.dp, PitchLine, RoundedCornerShape(20.dp))
+                .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                "BUTS ATTENDUS",
+                color = TextMuted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MarcheStat(
+                    label = r.equipe1.uppercase(),
+                    valeur = String.format("%.1f", r.butsAttendusEquipe1),
+                    couleur = TurfGreen,
+                    modifier = Modifier.weight(1f)
+                )
+                MarcheStat(
+                    label = r.equipe2.uppercase(),
+                    valeur = String.format("%.1f", r.butsAttendusEquipe2),
+                    couleur = EmberOrange,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            PitchDivider()
+
+            Text(
+                "AUTRES MARCHÉS",
+                color = TextMuted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MarcheStat(
+                    label = "+0.5 BUT",
+                    valeur = "${(r.probabiliteOver05 * 100).toInt()}%",
+                    couleur = FloodlightGold,
+                    modifier = Modifier.weight(1f)
+                )
+                MarcheStat(
+                    label = "+1.5 BUT",
+                    valeur = "${(r.probabiliteOver15 * 100).toInt()}%",
+                    couleur = FloodlightGold,
+                    modifier = Modifier.weight(1f)
+                )
+                MarcheStat(
+                    label = "2 MARQUENT",
+                    valeur = "${(r.probabiliteBTTS * 100).toInt()}%",
+                    couleur = FloodlightGold,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            if (r.scoresProbables.isNotEmpty()) {
+                Text(
+                    "SCORES LES PLUS PROBABLES",
+                    color = TextMuted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    r.scoresProbables.take(3).forEach { sp ->
+                        MarcheStat(
+                            label = "${(sp.probabilite * 100).toInt()}%",
+                            valeur = sp.score,
+                            couleur = TextPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -524,6 +625,39 @@ private fun ScoreDigit(
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
             fontSize = if (big) 30.sp else 18.sp
+        )
+    }
+}
+
+@Composable
+private fun MarcheStat(
+    label: String,
+    valeur: String,
+    couleur: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(PanelRaised)
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = valeur,
+            color = couleur,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+        Text(
+            text = label,
+            color = TextFaint,
+            fontSize = 9.sp,
+            letterSpacing = 0.5.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1
         )
     }
 }

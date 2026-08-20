@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
@@ -17,6 +18,15 @@ object RetrofitClient {
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        // ⏱️ Délais généreux : le plan gratuit de Render peut mettre
+        // 30-50s à "réveiller" le service après une période d'inactivité,
+        // et une analyse de match peut elle-même prendre plusieurs
+        // secondes (recherche sur plusieurs sources + confrontation
+        // directe). Des délais trop courts (défaut OkHttp : 10s)
+        // provoquaient des erreurs réseau qui n'en étaient pas vraiment.
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     val apiService: ApiService by lazy {

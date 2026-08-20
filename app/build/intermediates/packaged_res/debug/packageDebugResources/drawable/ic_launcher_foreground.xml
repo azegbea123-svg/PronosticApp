@@ -3,7 +3,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Barre gauche — domicile (doré, ton principal de l'appli) -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,29 C69.9,29 83,42.1 83,58 C83,73.9 69.9,87 54,87 C38.1,87 25,73.9 25,58 C25,42.1 38.1,29 54,29 Z M54,38 L45,46 L48,57 L60,57 L63,46 Z" />
+        android:fillColor="#F5B942"
+        android:pathData="M28,50 L42,50 L42,80 L28,80 Z" />
+    <!-- Barre centrale — la plus haute (vert "domicile" du système de couleurs) -->
+    <path
+        android:fillColor="#3FA34D"
+        android:pathData="M47,34 L61,34 L61,80 L47,80 Z" />
+    <!-- Barre droite — la plus basse (orange "extérieur") -->
+    <path
+        android:fillColor="#E4572E"
+        android:pathData="M66,60 L80,60 L80,80 L66,80 Z" />
 </vector>

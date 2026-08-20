@@ -1,6 +1,7 @@
 package com.example.pronosticapp.network
 
 import com.example.pronosticapp.model.MatchAnalysisResponse
+import com.example.pronosticapp.model.ScoreProbable
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -9,8 +10,8 @@ import kotlin.random.Random
  * saisie = même résultat, pour un rendu cohérent pendant les tests).
  *
  * Objectif : valider tout le flux de l'appli (saisie -> clic -> affichage)
- * SANS dépendre du backend. Une fois le backend prêt, il suffira de mettre
- * RetrofitClient.USE_MOCK_DATA à false dans MainActivity.
+ * SANS dépendre du backend. Utile pour tester l'UI sans attendre le
+ * réveil du service Render, par exemple.
  */
 object MockAnalysisProvider {
 
@@ -18,14 +19,17 @@ object MockAnalysisProvider {
         val seed = abs((equipe1 + equipe2 + typeMatch).hashCode())
         val random = Random(seed)
 
-        val base1 = 0.25 + random.nextDouble() * 0.4  // entre 0.25 et 0.65
-        val nul = 0.15 + random.nextDouble() * 0.15    // entre 0.15 et 0.30
+        val base1 = 0.25 + random.nextDouble() * 0.4
+        val nul = 0.15 + random.nextDouble() * 0.15
         val base2 = (1.0 - base1 - nul).coerceAtLeast(0.05)
 
         val total = base1 + nul + base2
         val p1 = base1 / total
         val pNul = nul / total
         val p2 = base2 / total
+
+        val buts1 = 0.8 + random.nextDouble() * 2.2
+        val buts2 = 0.6 + random.nextDouble() * 2.0
 
         val facteurs = listOf(
             "Forme récente sur les 5 derniers matchs",
@@ -42,10 +46,10 @@ object MockAnalysisProvider {
 
         val resume = if (favori != null) {
             "$favori part légèrement favori pour ce $typeMatch, mais l'écart reste " +
-                "resserré. Les facteurs clés ci-dessous méritent d'être suivis avant le coup d'envoi."
+                "resserré. (⚠️ Donnée simulée — backend non consulté.)"
         } else {
-            "Match très équilibré entre $equipe1 et $equipe2 pour ce $typeMatch, sans favori net " +
-                "selon les indicateurs disponibles."
+            "Match très équilibré entre $equipe1 et $equipe2 pour ce $typeMatch. " +
+                "(⚠️ Donnée simulée — backend non consulté.)"
         }
 
         return MatchAnalysisResponse(
@@ -55,7 +59,18 @@ object MockAnalysisProvider {
             probabiliteMatchNul = pNul,
             probabiliteVictoireEquipe2 = p2,
             facteursCles = facteurs,
-            resumeAnalyse = "$resume (⚠️ Donnée simulée — backend non encore connecté.)"
+            resumeAnalyse = resume,
+            butsAttendusEquipe1 = buts1,
+            butsAttendusEquipe2 = buts2,
+            probabiliteBTTS = 0.4 + random.nextDouble() * 0.4,
+            probabiliteOver05 = 0.85 + random.nextDouble() * 0.14,
+            probabiliteOver15 = 0.55 + random.nextDouble() * 0.3,
+            probabiliteOver25 = 0.3 + random.nextDouble() * 0.35,
+            scoresProbables = listOf(
+                ScoreProbable("${buts1.toInt()}-${buts2.toInt()}", 0.12),
+                ScoreProbable("1-1", 0.10),
+                ScoreProbable("2-1", 0.09)
+            )
         )
     }
 }
