@@ -70,7 +70,9 @@ object MockAnalysisProvider {
                 ScoreProbable("${buts1.toInt()}-${buts2.toInt()}", 0.12),
                 ScoreProbable("1-1", 0.10),
                 ScoreProbable("2-1", 0.09)
-            )
+            ),
+            vip = false,
+            pronosticsRestantsAujourdhui = 2
         )
     }
 }

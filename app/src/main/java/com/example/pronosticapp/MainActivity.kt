@@ -73,6 +73,8 @@ fun PronosticScreen() {
     var enCours by remember { mutableStateOf(false) }
     var erreur by remember { mutableStateOf<String?>(null) }
     var limiteAtteinte by remember { mutableStateOf(false) }
+    var pronosticsRestants by remember { mutableStateOf<Int?>(null) }
+    val statutVip = resultat?.vip ?: false
 
     var telephone by remember { mutableStateOf(PreferencesTelephone.charger(context)) }
     var afficherDialogTelephone by remember { mutableStateOf(telephone.isBlank()) }
@@ -132,11 +134,16 @@ fun PronosticScreen() {
                                 )
                                 if (response.isSuccessful) {
                                     resultat = response.body()
+                                    pronosticsRestants = response.body()?.pronosticsRestantsAujourdhui
                                 } else if (response.code() == 429) {
                                     limiteAtteinte = true
                                     erreur = "Limite gratuite atteinte pour aujourd'hui."
                                 } else {
-                                    erreur = "Erreur serveur : ${response.code()}"
+                                    // Corps de l'erreur inclus pour diagnostiquer précisément
+                                    // (ex: 422 = un champ de la requête ne respecte pas le format attendu)
+                                    val corpsErreur = response.errorBody()?.string()
+                                    erreur = "Erreur serveur : ${response.code()}" +
+                                        if (!corpsErreur.isNullOrBlank()) " — $corpsErreur" else ""
                                 }
                             }
                         } catch (e: Exception) {
@@ -171,6 +178,15 @@ fun PronosticScreen() {
                 }
             }
 
+            if (!statutVip && pronosticsRestants != null) {
+                Text(
+                    text = "🎟️ $pronosticsRestants pronostic(s) gratuit(s) restant(s) aujourd'hui",
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+
             erreur?.let {
                 ErrorCard(message = it)
                 if (limiteAtteinte) {
@@ -189,9 +205,10 @@ fun PronosticScreen() {
             }
 
             resultat?.let { r ->
-                ResultBlock(r)
+                ResultBlock(r, onDemanderVip = { afficherDialogVip = true })
             }
         }
+
 
         if (afficherDialogTelephone) {
             DialogTelephone(
@@ -498,7 +515,7 @@ private fun ErrorCard(message: String) {
 }
 
 @Composable
-private fun ResultBlock(r: MatchAnalysisResponse) {
+private fun ResultBlock(r: MatchAnalysisResponse, onDemanderVip: () -> Unit) {
     val p1 = r.probabiliteVictoireEquipe1 * 100
     val pNul = r.probabiliteMatchNul * 100
     val p2 = r.probabiliteVictoireEquipe2 * 100
@@ -570,86 +587,92 @@ private fun ResultBlock(r: MatchAnalysisResponse) {
         }
 
         // Carte marchés — over/under, BTTS, scores les plus probables
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .background(PanelNight)
-                .border(1.dp, PitchLine, RoundedCornerShape(20.dp))
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Text(
-                "BUTS ATTENDUS",
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MarcheStat(
-                    label = r.equipe1.uppercase(),
-                    valeur = String.format("%.1f", r.butsAttendusEquipe1),
-                    couleur = TurfGreen,
-                    modifier = Modifier.weight(1f)
-                )
-                MarcheStat(
-                    label = r.equipe2.uppercase(),
-                    valeur = String.format("%.1f", r.butsAttendusEquipe2),
-                    couleur = EmberOrange,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            PitchDivider()
-
-            Text(
-                "AUTRES MARCHÉS",
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MarcheStat(
-                    label = "+0.5 BUT",
-                    valeur = "${(r.probabiliteOver05 * 100).toInt()}%",
-                    couleur = FloodlightGold,
-                    modifier = Modifier.weight(1f)
-                )
-                MarcheStat(
-                    label = "+1.5 BUT",
-                    valeur = "${(r.probabiliteOver15 * 100).toInt()}%",
-                    couleur = FloodlightGold,
-                    modifier = Modifier.weight(1f)
-                )
-                MarcheStat(
-                    label = "2 MARQUENT",
-                    valeur = "${(r.probabiliteBTTS * 100).toInt()}%",
-                    couleur = FloodlightGold,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            if (r.scoresProbables.isNotEmpty()) {
+        // Réservée aux VIP : le 1X2 ci-dessus reste toujours gratuit et
+        // illimité, mais cette carte constitue la valeur ajoutée payante.
+        if (r.vip) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(PanelNight)
+                    .border(1.dp, PitchLine, RoundedCornerShape(20.dp))
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
                 Text(
-                    "SCORES LES PLUS PROBABLES",
+                    "BUTS ATTENDUS",
                     color = TextMuted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    r.scoresProbables.take(3).forEach { sp ->
-                        MarcheStat(
-                            label = "${(sp.probabilite * 100).toInt()}%",
-                            valeur = sp.score,
-                            couleur = TextPrimary,
-                            modifier = Modifier.weight(1f)
-                        )
+                    MarcheStat(
+                        label = r.equipe1.uppercase(),
+                        valeur = String.format("%.1f", r.butsAttendusEquipe1),
+                        couleur = TurfGreen,
+                        modifier = Modifier.weight(1f)
+                    )
+                    MarcheStat(
+                        label = r.equipe2.uppercase(),
+                        valeur = String.format("%.1f", r.butsAttendusEquipe2),
+                        couleur = EmberOrange,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                PitchDivider()
+
+                Text(
+                    "AUTRES MARCHÉS",
+                    color = TextMuted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MarcheStat(
+                        label = "+0.5 BUT",
+                        valeur = "${(r.probabiliteOver05 * 100).toInt()}%",
+                        couleur = FloodlightGold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    MarcheStat(
+                        label = "+1.5 BUT",
+                        valeur = "${(r.probabiliteOver15 * 100).toInt()}%",
+                        couleur = FloodlightGold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    MarcheStat(
+                        label = "2 MARQUENT",
+                        valeur = "${(r.probabiliteBTTS * 100).toInt()}%",
+                        couleur = FloodlightGold,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                if (r.scoresProbables.isNotEmpty()) {
+                    Text(
+                        "SCORES LES PLUS PROBABLES",
+                        color = TextMuted,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        r.scoresProbables.take(3).forEach { sp ->
+                            MarcheStat(
+                                label = "${(sp.probabilite * 100).toInt()}%",
+                                valeur = sp.score,
+                                couleur = TextPrimary,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
+        } else {
+            CarteVerrouilleeVip(onDemanderVip = onDemanderVip)
         }
 
         Column(
@@ -715,6 +738,45 @@ private fun ScoreDigit(
             fontWeight = FontWeight.Bold,
             fontSize = if (big) 30.sp else 18.sp
         )
+    }
+}
+
+@Composable
+private fun CarteVerrouilleeVip(onDemanderVip: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(PanelNight)
+            .border(1.dp, FloodlightGoldDim, RoundedCornerShape(20.dp))
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("🔒", fontSize = 24.sp)
+        Text(
+            "Buts attendus, over/under, BTTS et scores probables",
+            color = TextPrimary,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            "Réservé aux membres VIP",
+            color = TextMuted,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center
+        )
+        Button(
+            onClick = onDemanderVip,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = FloodlightGold,
+                contentColor = StadiumNight
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("💎 Débloquer avec VIP", fontWeight = FontWeight.Bold)
+        }
     }
 }
 

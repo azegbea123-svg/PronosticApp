@@ -28,7 +28,9 @@ data class MatchAnalysisResponse(
     val probabiliteOver05: Double,
     val probabiliteOver15: Double,
     val probabiliteOver25: Double,
-    val scoresProbables: List<ScoreProbable>
+    val scoresProbables: List<ScoreProbable>,
+    val vip: Boolean,
+    val pronosticsRestantsAujourdhui: Int?
 )
 
 // ---- Système VIP ----
