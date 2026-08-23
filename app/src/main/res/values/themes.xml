@@ -1,6 +1,7 @@
 <resources>
     <style name="Theme.PronosticApp" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/ic_launcher_background</item>
-        <item name="android:statusBarColor">@color/ic_launcher_background</item>
+        <item name="android:windowBackground">@color/fond_app_clair</item>
+        <item name="android:statusBarColor">@color/fond_app_clair</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
