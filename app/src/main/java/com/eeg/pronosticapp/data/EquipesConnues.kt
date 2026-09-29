@@ -78,7 +78,232 @@ object EquipesConnues {
         // Autres clubs européens notables
         "Red Bull Salzburg", "Dynamo Kyiv", "Shakhtar Donetsk", "Olympiacos",
         "Panathinaikos", "AEK Athens", "Zenit Saint-Petersburg", "Spartak Moscow",
-        "Malaga", "Real Zaragoza", "Deportivo La Coruna", "Sporting Gijon"
+        "Malaga", "Real Zaragoza", "Deportivo La Coruna", "Sporting Gijon",
+
+        // ── Championnats supplémentaires (ajoutés pour couvrir la diversité
+        // des matchs sur lesquels les parieurs peuvent vouloir un pronostic,
+        // au-delà des seuls grands championnats européens) ──
+        // Premier Liga Kirghizistan
+        "Bishkek-City", "Alga Bishkek", "Toktogul", "Aldier",
+
+        // LaLiga
+        "Levante", "RC Deportivo",
+
+        // Serie A
+        "Roma",
+
+        // LaLiga2
+        "Celta Fortuna", "FC Andorra", "Granada",
+
+        // Clausura Argentina
+        "Tigre", "Central Cordoba",
+
+        // Liga MX Apertura
+        "Pumas UNAM", "Necaxa",
+
+        // Serie A Betano
+        "Athletico Paranaense",
+
+        // DFB Pokal
+        "Altglienicke", "Verl", "Hamburger SV", "Wurzburger Kickers",
+        "Koln", "Hallescher FC", "Schalke 04",
+
+        // Liga Portugal
+        "Gil Vicente", "Casa Pia AC",
+
+        // Clausura Colombia
+        "Junior", "Once Caldas",
+
+        // Premier League Russie
+        "Baltika Kaliningrad", "Rubin Kazan",
+
+        // Super Lig
+        "Kocaelispor", "Amedspor",
+
+        // Liga de Primera Chili
+        "Everton Vina del Mar", "Univ. Concepcion",
+
+        // Allsvenskan
+        "Malmo FF", "Djurgardens IF",
+
+        // Ligue 2
+        "Stade de Reims", "Annecy",
+
+        // Greek Cup
+        "Ellas Syrou", "Marko",
+
+        // Superliga Roumanie
+        "Botosani", "Csikszereda", "Otelul Galati", "FC Arges",
+
+        // Liga de Expansion MX
+        "CD Tapatio", "Mineros de Zacatecas",
+
+        // Primera Nacional
+        "Club Atletico Guemes", "Atletico Rafaela", "Ferro Carril Oeste", "All Boys",
+
+        // Serie B Bresil
+        "Novorizontino", "Sport Recife", "America Mineiro",
+
+        // Efbet League
+        "Botev Vratsa", "Botev Plovdiv", "Lokomotiv Plovdiv", "Arda Kardzhali",
+
+        // Superliga Danemark
+        "Brondby IF", "Silkeborg IF",
+
+        // Liga Portugal 2
+        "Farense", "Felgueiras 1932", "Feirense", "Porto II",
+
+        // Eerste Divisie
+        "Jong Utrecht", "Heracles", "Jong PSV", "TOP Oss",
+
+        // Primera B Clausura
+        "Tigres FC", "Union Magdalena", "Real Santander", "Independiente Valle Cauca",
+        "Orsomarso SC", "Real Cundinamarca", "Leones", "Real Cartagena",
+        "Patriotas Boyaca", "Atletico Futbol Club",
+
+        // Lega Pro
+        "Livorno", "Sassari Torres", "Reggiana", "Ravenna FC",
+        "Folgore Caratese", "Dolomiti Bellunesi", "Salernitana", "Sorrento",
+        "Team Altamura", "Monopoli", "Crotone", "Calcio Foggia",
+
+        // Vysshaya Liga Bielorussie
+        "Isloch", "Dinamo Minsk", "Torpedo-BelAZ", "Dnepr Mogilev",
+
+        // FNL Russie
+        "KamAZ", "Sochi", "Rotor Volgograd", "Neftekhimik",
+        "Veles", "Arsenal Tula", "Nizhny Novgorod", "SKA-Khabarovsk",
+
+        // USL Championship
+        "Charleston Battery", "Miami FC",
+
+        // 1. Lig Turquie
+        "Sivasspor", "Manisa FK",
+
+        // Liga de Ascenso Chili
+        "San Luis de Quillota", "Santiago Wanderers",
+
+        // Superettan
+        "Ostersunds FK", "Ljungskile", "IFK Varnamo", "Landskrona BoIS",
+        "IFK Norrkoping", "Falkenbergs",
+
+        // Liga Nacional Guatemala
+        "Marquense", "Coban Imperial", "Malacateco", "Dep. San Pedro",
+
+        // 1. MFL Macedoine
+        "FK Vardar", "Sileks", "KF Shkendija", "Struga",
+
+        // Super League Ouzbekistan
+        "Kokand 1912", "Buxoro",
+
+        // Toplyga Lituanie
+        "FK TransINVEST", "Siauliai",
+
+        // Primera Division Costa Rica
+        "LD Alajuelense", "San Carlos",
+
+        // Liga Pro Equateur
+        "Liga de Quito", "CS Emelec",
+
+        // Saudi Professional League
+        "Neom SC", "Al-Qadsiah FC", "Al-Ittihad", "Al-Hazem SC",
+
+        // Ligat haAl Israel
+        "Maccabi Netanya", "Bnei Sakhnin",
+
+        // Primera C Metro Argentine
+        "Centro Espanol", "Estrella del Sur", "Dep. Espanol", "Lujan",
+        "Claypole", "Fenix Bs As",
+
+        // Clausura Paraguay
+        "Nacional", "Sportivo Luqueno", "Libertad", "Sportivo San Lorenzo",
+
+        // Division 1 Suede
+        "Hassleholms IF", "Laholms FK",
+
+        // Vtora Liga Bulgarie
+        "Vihren", "Fratria",
+
+        // Besta deild karla Islande
+        "Breidablik", "Fram",
+
+        // Division 1 Pologne
+        "Stal Rzeszow", "Ruch Chorzow",
+
+        // Copa Simon Bolivar
+        "Club Ingenieros", "Chaco Pando",
+
+        // Torneo Promocional Amateur
+        "SAT", "Atletico Pilar", "FC Ezeiza", "Belgrano Zarate",
+        "Estrella de Berisso", "Nautico Hacoaj",
+
+        // Super League Malaisie
+        "Sabah", "Star City",
+
+        // 2. Liga Slovaquie
+        "Lokomotiva Zvolen", "FC Petrzalka",
+
+        // Primera Apertura Guatemala
+        "Sacachispas", "Achuapa", "Huehuetecos FC", "Quiche",
+
+        // Liga Primera Nicaragua
+        "Walter Ferretti", "UNAN Managua",
+
+        // Esiliiga Estonie
+        "FC Elva", "FC Flora Tallin II", "Viimsi JK", "Nomme United II",
+        "Tallinna Kalev", "Maardu FC",
+
+        // Nakotnes Liga Lettonie
+        "Riga FC II", "Beitar/Riga Mariners",
+
+        // Leumit League Israel
+        "Maccabi Kiryat Gat FC", "Hapoel Rishon LeZion", "Maccabi Ahi Nazareth", "Hapoel Afula",
+        "FC Ashdod", "Maccabi Kabilio Jaffa",
+
+        // Division Intermedia Paraguay
+        "Club 12 de Junio", "Paraguari AC",
+
+        // Puerto Rico League
+        "EF Taurinos Cayey", "Academia Quintana",
+
+        // Persian Gulf Pro League
+        "Tractor", "Persepolis Tehran", "Kheybar", "Peykan",
+        "Malavan", "Fajr Sepasi", "Zob Ahan", "Mes Shahr Babak",
+        "GolGohar", "Chadormalu", "Naft Abadan", "Foolad Khuzestan",
+
+        // Ligi Kuu Bara Tanzanie
+        "Young Africans", "JKT Tanzania", "Coastal Union", "TRA United",
+
+        // Mozzart Bet Prva Liga Serbie
+        "Smederevo", "Teleoptik", "FK Proleter 023", "Graficar",
+        "FK Spartak Subotica", "Javor Ivanjica",
+
+        // Panama Promotion League
+        "Panama City", "UMECIT II",
+
+        // Esiliiga B Estonie
+        "Levadia III", "TJK Legion", "Vaprus Parnu II", "Tabasalu Charma",
+
+        // Armenian Cup
+        "Araks Ararat", "Cilicia",
+
+        // Liga 2 Perou
+        "Alianza Universidad", "Tacna Heroica",
+
+        // Premier League 2 Singapour
+        "Albirex Niigata II", "Young Lions II", "Tampines Rovers II", "Hougang Utd. II",
+
+        // Division 2 Qatar
+        "Al Mesaimeer", "Muaither", "Al Shamal II", "Al Kharitiyath",
+
+        // Segunda Categoria Equateur
+        "Vicentino Dragons", "Ciudad Canela",
+
+        // Calcutta Premier Division
+        "Kalighat Milan Sangha", "East Bengal Club", "Calcutta Police", "Kalighat SL",
+        "Peerless SC", "Wari Athletic Club", "Techno Aryan", "Rainbow",
+
+        // Sri Lanka League
+        "Red Star", "Blue Eagles SC",
     )
 
     /** Filtre local, insensible à la casse, sur ce que l'utilisateur a tapé. */

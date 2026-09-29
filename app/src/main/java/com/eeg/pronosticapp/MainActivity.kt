@@ -8,17 +8,18 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.eeg.pronosticapp.data.CompetitionsConnues
 import com.eeg.pronosticapp.data.EquipesConnues
 import com.eeg.pronosticapp.model.ActiverCodeRequest
 import com.eeg.pronosticapp.model.ConfirmationRequest
@@ -56,7 +58,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             PronosticAppTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    AppRacine()
+                    // L'appli occupe 80% de l'écran (largeur ET hauteur),
+                    // centrée, quelle que soit la taille de l'écran
+                    // (petit téléphone, grand téléphone, tablette...).
+                    // Le fond de la Surface ci-dessus reste visible tout
+                    // autour, dans les 20% restants.
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .fillMaxHeight(0.9f)
+                        ) {
+                            AppRacine()
+                        }
+                    }
                 }
             }
         }
@@ -106,6 +124,7 @@ fun PronosticScreen() {
     var afficherDialogInfo by remember { mutableStateOf(false) }
     var afficherMenuCompte by remember { mutableStateOf(false) }
     var afficherDialogSupprimerCompte by remember { mutableStateOf(false) }
+    var afficherCalculateurMises by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -309,12 +328,20 @@ fun PronosticScreen() {
             DialogInformations(onFerme = { afficherDialogInfo = false })
         }
 
+        if (afficherCalculateurMises) {
+            DialogCalculateurMises(onFerme = { afficherCalculateurMises = false })
+        }
+
         if (afficherMenuCompte) {
             DialogMenuCompte(
                 onFerme = { afficherMenuCompte = false },
                 onInformations = {
                     afficherMenuCompte = false
                     afficherDialogInfo = true
+                },
+                onCalculateurMises = {
+                    afficherMenuCompte = false
+                    afficherCalculateurMises = true
                 },
                 onDeconnexion = {
                     afficherMenuCompte = false
@@ -525,61 +552,17 @@ private fun MatchupCard(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                "TYPE DE RENCONTRE",
-                color = TextMuted,
-                fontSize = 11.sp,
-                letterSpacing = 1.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            // Saisie libre : n'importe quelle ligue/compétition, même absente
-            // de la liste ci-dessous, peut être tapée directement.
-            OutlinedTextField(
+            TeamField(
+                label = "TYPE DE RENCONTRE",
                 value = typeMatch,
                 onValueChange = onTypeMatchChange,
-                placeholder = { Text("Ex : Ligue 1, Coupe, Amical...", color = TextFaint) },
-                singleLine = true,
-                textStyle = TextStyle(color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = FloodlightGold,
-                    unfocusedBorderColor = PitchLine,
-                    focusedContainerColor = PanelRaised,
-                    unfocusedContainerColor = PanelRaised,
-                    cursorColor = FloodlightGold
-                ),
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
+                accent = FloodlightGoldDim,
+                placeholder = "Ex : Ligue 1, Coupe, Amical...",
+                suggestionsPour = { CompetitionsConnues.suggestions(it, limite = 5) }
             )
-
-            // Raccourcis pour les ligues courantes — un simple appui
-            // remplit le champ, mais ne bloque jamais la saisie libre
-            // ci-dessus si la ligue recherchée n'y figure pas.
-            Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TYPES_DE_MATCH.forEach { (libelle, valeur) ->
-                    MatchTypeChip(libelle, valeur, typeMatch, onTypeMatchChange)
-                }
-            }
         }
     }
 }
-
-// Ligues principales + catégories génériques. La valeur (deuxième élément)
-// est ce qui est envoyé au backend et inséré dans le résumé du pronostic.
-private val TYPES_DE_MATCH = listOf(
-    "Ligue 1" to "Ligue 1",
-    "LaLiga" to "LaLiga",
-    "Premier League" to "Premier League",
-    "Serie A" to "Serie A",
-    "Bundesliga" to "Bundesliga",
-    "Primeira Liga" to "Primeira Liga",
-    "Ligue des Champions" to "Ligue des Champions",
-    "Coupe" to "coupe",
-    "Amical" to "amical"
-)
 
 @Composable
 private fun TeamField(
@@ -587,10 +570,12 @@ private fun TeamField(
     value: String,
     onValueChange: (String) -> Unit,
     accent: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: String = "Équipe",
+    suggestionsPour: (String) -> List<String> = { EquipesConnues.suggestions(it, limite = 4) }
 ) {
     var estFocus by remember { mutableStateOf(false) }
-    val suggestions = remember(value) { EquipesConnues.suggestions(value, limite = 4) }
+    val suggestions = remember(value) { suggestionsPour(value) }
     val afficherSuggestions = estFocus && suggestions.isNotEmpty()
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -598,7 +583,7 @@ private fun TeamField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text("Équipe", color = TextFaint) },
+            placeholder = { Text(placeholder, color = TextFaint) },
             singleLine = true,
             textStyle = TextStyle(color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
             colors = OutlinedTextFieldDefaults.colors(
@@ -731,9 +716,9 @@ private fun ResultBlock(r: MatchAnalysisResponse) {
             }
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-                ScoreDigit(value = p1, color = TurfGreen, big = true, align = Alignment.Start, modifier = Modifier.weight(1f))
-                ScoreDigit(value = pNul, color = NeutralDraw, big = false, align = Alignment.CenterHorizontally, modifier = Modifier.weight(0.7f))
-                ScoreDigit(value = p2, color = EmberOrange, big = true, align = Alignment.End, modifier = Modifier.weight(1f))
+                ScoreDigit(value = p1, color = TurfGreen, big = true, align = Alignment.Start, modifier = Modifier.weight(1f), avis = r.avisFiabiliteV1)
+                ScoreDigit(value = pNul, color = NeutralDraw, big = false, align = Alignment.CenterHorizontally, modifier = Modifier.weight(0.7f), avis = r.avisFiabiliteNul)
+                ScoreDigit(value = p2, color = EmberOrange, big = true, align = Alignment.End, modifier = Modifier.weight(1f), avis = r.avisFiabiliteV2)
             }
 
             // Barre de probabilités façon tableau de cotes de stade
@@ -873,7 +858,8 @@ private fun ScoreDigit(
     color: Color,
     big: Boolean,
     align: Alignment.Horizontal,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    avis: String? = null
 ) {
     Column(modifier = modifier, horizontalAlignment = align) {
         Text(
@@ -883,6 +869,16 @@ private fun ScoreDigit(
             fontWeight = FontWeight.Bold,
             fontSize = if (big) 30.sp else 18.sp
         )
+        if (avis != null) {
+            Text(
+                text = avis,
+                color = TextFaint,
+                fontSize = 10.sp,
+                lineHeight = 12.sp,
+                textAlign = if (align == Alignment.End) TextAlign.End else if (align == Alignment.Start) TextAlign.Start else TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
     }
 }
 
@@ -924,6 +920,7 @@ private fun MarcheStat(
 private fun DialogMenuCompte(
     onFerme: () -> Unit,
     onInformations: () -> Unit,
+    onCalculateurMises: () -> Unit,
     onDeconnexion: () -> Unit,
     onSupprimerCompte: () -> Unit
 ) {
@@ -956,6 +953,18 @@ private fun DialogMenuCompte(
                 Text("ℹ️", fontSize = 18.sp)
                 Spacer(Modifier.width(14.dp))
                 Text("Informations", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onCalculateurMises() }
+                    .padding(horizontal = 18.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("🧮", fontSize = 18.sp)
+                Spacer(Modifier.width(14.dp))
+                Text("Calculateur de mises", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             }
 
             Row(
@@ -1064,6 +1073,195 @@ private fun DialogSupprimerCompte(onFerme: () -> Unit, onSupprime: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun DialogCalculateurMises(onFerme: () -> Unit) {
+    // Entrée libre par l'utilisateur — les cotes de SES bookmakers, pas
+    // celles de l'appli. Pur calcul local, aucun appel réseau nécessaire.
+    var cotes by remember { mutableStateOf(listOf("", "")) }
+    var budget by remember { mutableStateOf("") }
+    var resultat by remember { mutableStateOf<ResultatDutching?>(null) }
+    var erreur by remember { mutableStateOf<String?>(null) }
+
+    Dialog(onDismissRequest = onFerme) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(PanelNight)
+                .border(1.dp, PitchLine, RoundedCornerShape(16.dp))
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("Calculateur de mises", color = FloodlightGold, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(
+                "Entre les cotes de tes paris (chez tes bookmakers) et le budget total à répartir. " +
+                    "La répartition donne le MÊME gain quel que soit le pari qui passe.",
+                color = TextMuted,
+                fontSize = 12.sp
+            )
+
+            cotes.forEachIndexed { index, valeur ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = valeur,
+                        onValueChange = { nouveau ->
+                            cotes = cotes.toMutableList().also { it[index] = nouveau }
+                            resultat = null
+                            erreur = null
+                        },
+                        label = { Text("Cote pari ${index + 1}", color = TextFaint, fontSize = 12.sp) },
+                        placeholder = { Text("Ex : 1.64", color = TextFaint) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        textStyle = TextStyle(color = TextPrimary, fontSize = 14.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = FloodlightGold,
+                            unfocusedBorderColor = PitchLine,
+                            focusedContainerColor = PanelRaised,
+                            unfocusedContainerColor = PanelRaised,
+                            cursorColor = FloodlightGold
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (cotes.size > 2) {
+                        IconButton(onClick = {
+                            cotes = cotes.toMutableList().also { it.removeAt(index) }
+                            resultat = null
+                        }) {
+                            Text("✕", color = EmberOrange, fontSize = 16.sp)
+                        }
+                    }
+                }
+            }
+
+            TextButton(onClick = { cotes = cotes + "" }) {
+                Text("+ Ajouter une cote", color = TurfGreen, fontSize = 13.sp)
+            }
+
+            OutlinedTextField(
+                value = budget,
+                onValueChange = { budget = it; resultat = null; erreur = null },
+                label = { Text("Budget total à répartir", color = TextFaint, fontSize = 12.sp) },
+                placeholder = { Text("Ex : 10000", color = TextFaint) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                textStyle = TextStyle(color = TextPrimary, fontSize = 14.sp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = FloodlightGold,
+                    unfocusedBorderColor = PitchLine,
+                    focusedContainerColor = PanelRaised,
+                    unfocusedContainerColor = PanelRaised,
+                    cursorColor = FloodlightGold
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            erreur?.let {
+                Text(it, color = EmberOrange, fontSize = 12.sp)
+            }
+
+            Button(
+                onClick = {
+                    val cotesNum = cotes.mapNotNull { it.replace(",", ".").toDoubleOrNull() }
+                    val budgetNum = budget.replace(",", ".").toDoubleOrNull()
+                    when {
+                        cotesNum.size < 2 || cotesNum.size != cotes.size -> {
+                            erreur = "Entre une cote valide (> 1.0) pour chaque pari."
+                            resultat = null
+                        }
+                        cotesNum.any { it <= 1.0 } -> {
+                            erreur = "Chaque cote doit être un nombre supérieur à 1.0."
+                            resultat = null
+                        }
+                        budgetNum == null || budgetNum <= 0 -> {
+                            erreur = "Entre un budget valide, supérieur à 0."
+                            resultat = null
+                        }
+                        else -> {
+                            erreur = null
+                            resultat = calculerDutching(cotesNum, budgetNum)
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = FloodlightGold, contentColor = PanelNight),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Calculer", fontWeight = FontWeight.Bold)
+            }
+
+            resultat?.let { r ->
+                PitchDivider()
+                Text(
+                    "Marge des bookmaker(s) sur ces cotes combinées : ${r.margeBookmakerPourcent}%",
+                    color = TextMuted,
+                    fontSize = 11.sp
+                )
+                r.misesParPari.forEachIndexed { i, mise ->
+                    Text(
+                        "Pari ${i + 1} (cote ${cotes[i]}) → miser ${mise.toInt()}",
+                        color = TextPrimary,
+                        fontSize = 13.sp
+                    )
+                }
+                Text(
+                    "Retour si l'UN des paris passe : ${r.retourSiLunGagne.toInt()}",
+                    color = if (r.rentable) TurfGreen else EmberOrange,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+                Text(
+                    if (r.rentable)
+                        "Soit un gain net de ${r.gainNetSiLunGagne.toInt()} par rapport au budget engagé."
+                    else
+                        "Soit une PERTE de ${-r.gainNetSiLunGagne.toInt()} par rapport au budget engagé — " +
+                            "ces cotes combinées ne permettent pas de gain garanti avec ce budget.",
+                    color = TextMuted,
+                    fontSize = 12.sp
+                )
+            }
+
+            TextButton(onClick = onFerme, modifier = Modifier.fillMaxWidth()) {
+                Text("Fermer", color = TextFaint)
+            }
+        }
+    }
+}
+
+private data class ResultatDutching(
+    val misesParPari: List<Double>,
+    val retourSiLunGagne: Double,
+    val gainNetSiLunGagne: Double,
+    val margeBookmakerPourcent: Double,
+    val rentable: Boolean
+)
+
+/**
+ * Répartit `budget` entre les paris de `cotes` pour un gain IDENTIQUE
+ * quel que soit celui qui gagne (dutching) — pur calcul local, aucune
+ * dépendance réseau. Même logique que /outils/calculateur-mises côté
+ * backend, dupliquée ici pour un calcul instantané sans aller-retour
+ * serveur (l'utilisateur entre ses propres cotes de bookmaker, aucune
+ * donnée de l'appli n'est nécessaire).
+ */
+private fun calculerDutching(cotes: List<Double>, budget: Double): ResultatDutching {
+    val inverses = cotes.map { 1.0 / it }
+    val sommeInverses = inverses.sum()
+    val mises = inverses.map { budget * it / sommeInverses }
+    val retourEgal = budget / sommeInverses
+    val gainNet = retourEgal - budget
+    return ResultatDutching(
+        misesParPari = mises,
+        retourSiLunGagne = retourEgal,
+        gainNetSiLunGagne = gainNet,
+        margeBookmakerPourcent = ((sommeInverses - 1.0) * 100.0).let { if (it > 0) Math.round(it * 10) / 10.0 else 0.0 },
+        rentable = gainNet > 0
+    )
 }
 
 @Composable

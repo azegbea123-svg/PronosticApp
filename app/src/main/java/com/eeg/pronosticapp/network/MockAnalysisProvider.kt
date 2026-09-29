@@ -15,6 +15,22 @@ import kotlin.random.Random
  */
 object MockAnalysisProvider {
 
+    // Reproduit exactement les mêmes seuils que le backend (analysis.py
+    // _avis_fiabilite_v1_v2 / _avis_fiabilite_nul), pour que le mode
+    // simulé reste cohérent avec le vrai comportement de l'appli.
+    private fun avisV1V2(p: Double): String = when {
+        p >= 0.70 -> "Fiabilité élevée sur historique récent"
+        p >= 0.50 -> "Fiabilité correcte, reste un pari avec de l'incertitude"
+        p >= 0.35 -> "Signal présent mais incertain"
+        else -> "Peu probable sur la base de l'analyse"
+    }
+
+    private fun avisNul(p: Double): String = when {
+        p >= 0.30 -> "Signal notable, mais le nul reste statistiquement le pari le plus incertain des trois"
+        p >= 0.20 -> "Possibilité à surveiller, sans plus"
+        else -> "Peu probable sur la base de l'analyse"
+    }
+
     fun generer(equipe1: String, equipe2: String, typeMatch: String): MatchAnalysisResponse {
         val seed = abs((equipe1 + equipe2 + typeMatch).hashCode())
         val random = Random(seed)
@@ -46,10 +62,10 @@ object MockAnalysisProvider {
 
         val resume = if (favori != null) {
             "$favori part légèrement favori pour ce $typeMatch, mais l'écart reste " +
-                "resserré. (⚠️ Donnée simulée — backend non consulté.)"
+                    "resserré. (⚠️ Donnée simulée — backend non consulté.)"
         } else {
             "Match très équilibré entre $equipe1 et $equipe2 pour ce $typeMatch. " +
-                "(⚠️ Donnée simulée — backend non consulté.)"
+                    "(⚠️ Donnée simulée — backend non consulté.)"
         }
 
         return MatchAnalysisResponse(
@@ -58,6 +74,9 @@ object MockAnalysisProvider {
             probabiliteVictoireEquipe1 = p1,
             probabiliteMatchNul = pNul,
             probabiliteVictoireEquipe2 = p2,
+            avisFiabiliteV1 = avisV1V2(p1),
+            avisFiabiliteNul = avisNul(pNul),
+            avisFiabiliteV2 = avisV1V2(p2),
             facteursCles = facteurs,
             resumeAnalyse = resume,
             butsAttendusEquipe1 = buts1,
