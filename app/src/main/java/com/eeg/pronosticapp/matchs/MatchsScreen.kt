@@ -12,24 +12,40 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.eeg.pronosticapp.data.PreferencesTelephone
 import com.eeg.pronosticapp.model.MatchAnalysisRequest
 import com.eeg.pronosticapp.model.MatchAnalysisResponse
 import com.eeg.pronosticapp.model.MatchItem
 import com.eeg.pronosticapp.network.RetrofitClient
 import com.eeg.pronosticapp.ui.theme.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Écran "Matchs du jour" — liste des matchs des championnats suivis
- * pour aujourd'hui / demain, avec un indicateur (icône + couleur) qui
- * montre si les données d'analyse sont déjà disponibles avant même de cliquer.
+ * Écran "Matchs du jour" — liste de TOUS les matchs remontés par
+ * API-Football (sans filtre par championnat). donneesDisponibles a
+ * trois états :
+ *   - null  : vérification BeSoccer en cours côté serveur (en arrière-
+ *             plan, en priorité pour les matchs qui approchent) — pas
+ *             cliquable, affiché en gris avec un indicateur de
+ *             chargement.
+ *   - true  : cliquable, lance l'analyse (même /match/analyse que la
+ *             saisie manuelle, même quota de 3 gratuites/jour).
+ *   - false : vérifié, données introuvables — pas cliquable.
+ *
+ * Tant qu'il reste des matchs en attente (null), l'écran se rafraîchit
+ * tout seul en silence (sans reclignoter tout l'écran) pour refléter
+ * la progression de la vérification côté serveur.
  */
 @Composable
 fun MatchsScreen() {
+    val context = LocalContext.current
+    val telephone = remember { PreferencesTelephone.charger(context) }
     val scope = rememberCoroutineScope()
 
     var jourSelectionne by remember { mutableIntStateOf(0) } // 0 = aujourd'hui, 1 = demain
@@ -41,37 +57,49 @@ fun MatchsScreen() {
     var resultatAnalyse by remember { mutableStateOf<MatchAnalysisResponse?>(null) }
     var erreurAnalyse by remember { mutableStateOf<String?>(null) }
 
+    suspend fun rafraichir(jour: Int, silencieux: Boolean) {
+        if (!silencieux) chargement = true
+        try {
+            val reponse = RetrofitClient.apiService.listerMatchs(if (jour == 0) "today" else "tomorrow")
+            if (reponse.isSuccessful) {
+                matchs = reponse.body()?.matchs ?: emptyList()
+                erreur = null
+            } else if (!silencieux) {
+                erreur = "Erreur serveur : ${reponse.code()}"
+            }
+        } catch (e: Exception) {
+            if (!silencieux) erreur = "Erreur réseau : ${e.message}"
+        } finally {
+            if (!silencieux) chargement = false
+        }
+    }
+
     fun charger(jour: Int) {
         jourSelectionne = jour
-        chargement = true
-        erreur = null
-        scope.launch {
-            try {
-                val reponse = RetrofitClient.apiService.listerMatchs(if (jour == 0) "today" else "tomorrow")
-                if (reponse.isSuccessful) {
-                    matchs = reponse.body()?.matchs ?: emptyList()
-                } else {
-                    erreur = "Erreur serveur : ${reponse.code()}"
-                }
-            } catch (e: Exception) {
-                erreur = "Erreur réseau : ${e.message}"
-            } finally {
-                chargement = false
-            }
-        }
+        scope.launch { rafraichir(jour, silencieux = false) }
     }
 
     LaunchedEffect(Unit) { charger(0) }
 
+    // Rafraîchissement silencieux tant que des matchs sont encore "en
+    // attente" de vérification — reflète la progression du serveur sans
+    // que l'utilisateur ait besoin de relancer l'écran lui-même.
+    LaunchedEffect(matchs, jourSelectionne) {
+        if (matchs.any { it.donneesDisponibles == null }) {
+            delay(15_000)
+            rafraichir(jourSelectionne, silencieux = true)
+        }
+    }
+
     fun analyser(match: MatchItem) {
-        if (!match.donneesDisponibles) return
+        if (match.donneesDisponibles != true) return
         matchEnAnalyse = match
         erreurAnalyse = null
         resultatAnalyse = null
         scope.launch {
             try {
                 val reponse = RetrofitClient.apiService.analyserMatch(
-                    MatchAnalysisRequest(match.equipe1, match.equipe2, match.league)
+                    MatchAnalysisRequest(match.equipe1, match.equipe2, match.league, telephone)
                 )
                 if (reponse.isSuccessful) {
                     resultatAnalyse = reponse.body()
@@ -103,7 +131,7 @@ fun MatchsScreen() {
                 Text(erreur ?: "", color = EmberOrange, fontSize = 14.sp)
             }
             matchs.isEmpty() -> Box(Modifier.fillMaxSize().padding(20.dp), Alignment.Center) {
-                Text("Aucun match trouvé pour ce jour dans les championnats suivis.", color = TextMuted, fontSize = 13.sp)
+                Text("Aucun match trouvé pour ce jour.", color = TextMuted, fontSize = 13.sp)
             }
             else -> LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
@@ -191,30 +219,39 @@ private fun RowScope.OngletJour(label: String, selectionne: Boolean, onClick: ()
 @Composable
 private fun CarteMatch(match: MatchItem, onClick: () -> Unit) {
     val heure = match.date.takeIf { it.length >= 16 }?.substring(11, 16) ?: ""
+    val cliquable = match.donneesDisponibles == true
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(PanelNight)
-            .border(1.dp, if (match.donneesDisponibles) TurfGreen.copy(alpha = 0.4f) else PitchLine, RoundedCornerShape(14.dp))
-            .clickable(enabled = match.donneesDisponibles, onClick = onClick)
+            .border(
+                1.dp,
+                if (cliquable) TurfGreen.copy(alpha = 0.4f) else PitchLine,
+                RoundedCornerShape(14.dp)
+            )
+            .clickable(enabled = cliquable, onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(if (match.donneesDisponibles) TurfGreen else TextFaint)
-        )
+        when (match.donneesDisponibles) {
+            null -> CircularProgressIndicator(color = TextFaint, modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+            true -> Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(TurfGreen))
+            false -> Box(Modifier.size(10.dp).clip(RoundedCornerShape(5.dp)).background(TextFaint))
+        }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text("${match.equipe1} — ${match.equipe2}", color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             Text("${match.league} · $heure", color = TextMuted, fontSize = 11.sp)
         }
         Text(
-            if (match.donneesDisponibles) "Analyser" else "Indisponible",
-            color = if (match.donneesDisponibles) FloodlightGold else TextFaint,
+            when (match.donneesDisponibles) {
+                null -> "Vérification..."
+                true -> "Analyser"
+                false -> "Indisponible"
+            },
+            color = if (cliquable) FloodlightGold else TextFaint,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )

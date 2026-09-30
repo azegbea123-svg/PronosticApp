@@ -1,12 +1,11 @@
 package com.eeg.pronosticapp.model
 
-// Ce que l'appli envoie au backend — l'identité de l'utilisateur vient
-// désormais du jeton d'authentification (en-tête Authorization), plus
-// besoin de l'envoyer dans le corps de la requête.
+// Ce que l'appli envoie au backend
 data class MatchAnalysisRequest(
     val equipe1: String,
     val equipe2: String,
-    val typeMatch: String // ex: "championnat", "coupe", "amical", ou un nom de ligue
+    val typeMatch: String, // ex: "championnat", "coupe", "amical", ou un nom de ligue
+    val telephone: String  // identifiant simple pour le suivi du quota gratuit / VIP
 )
 
 data class ScoreProbable(
@@ -21,9 +20,6 @@ data class MatchAnalysisResponse(
     val probabiliteVictoireEquipe1: Double,
     val probabiliteMatchNul: Double,
     val probabiliteVictoireEquipe2: Double,
-    val avisFiabiliteV1: String,
-    val avisFiabiliteNul: String,
-    val avisFiabiliteV2: String,
     val facteursCles: List<String>,
     val resumeAnalyse: String,
     val butsAttendusEquipe1: Double,
@@ -37,20 +33,21 @@ data class MatchAnalysisResponse(
     val pronosticsRestantsAujourdhui: Int?
 )
 
-// ---- Profil / compte ----
+// ---- Liste de matchs J / J+1 (nouvelle approche) ----
 
-data class ProfilResponse(
-    val uid: String,
-    val email: String?,
-    val telephone: String?,
-    val vip: Boolean,
-    val vipExpireLe: String?,
-    val pronosticsUtilisesAujourdhui: Int,
-    val limiteQuotidienneGratuite: Int
+data class MatchItem(
+    val fixture_id: Long,
+    val date: String,
+    val league_id: Int,
+    val league: String,
+    val equipe1: String, // domicile
+    val equipe2: String, // extérieur
+    val donneesDisponibles: Boolean? // null = vérification en cours, pas encore cliquable
 )
 
-data class ProfilRequest(
-    val telephone: String?
+data class MatchsResponse(
+    val jour: String, // YYYY-MM-DD
+    val matchs: List<MatchItem>
 )
 
 // ---- Système VIP ----
@@ -58,14 +55,12 @@ data class ProfilRequest(
 data class VipStatutResponse(
     val vip: Boolean,
     val vipExpireLe: String?,
-    val vipExpireLeAffichage: String?,
-    val vipJoursRestants: Int?,
     val pronosticsUtilisesAujourdhui: Int,
     val limiteQuotidienneGratuite: Int
 )
 
 data class PaiementRequest(
-    val telephone: String, // requis ici : PayGate a besoin d'un vrai numéro pour débiter
+    val telephone: String,
     val reseau: String // "TMONEY" ou "FLOOZ"
 )
 
@@ -76,6 +71,7 @@ data class PaiementResponse(
 )
 
 data class ConfirmationRequest(
+    val telephone: String,
     val txReference: String
 )
 
@@ -83,13 +79,3 @@ data class ConfirmationResponse(
     val confirme: Boolean,
     val vipExpireLe: String?
 )
-
-data class ActiverCodeRequest(
-    val code: String
-)
-
-data class ActiverCodeResponse(
-    val active: Boolean,
-    val vipExpireLe: String?
-)
-

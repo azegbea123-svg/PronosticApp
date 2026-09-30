@@ -1,54 +1,23 @@
-import java.util.Properties
-
-// Charge keystore.properties depuis la racine du projet (jamais commité).
-// Si le fichier est absent (ex: build de debug en local), le build de
-// production ne sera juste pas signable — pas grave pour le développement
-// courant, seulement bloquant au moment de publier réellement.
-val keystorePropertiesFile = rootProject.file("keystore.properties")
-val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(keystorePropertiesFile.inputStream())
-}
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services) // nécessaire pour lire google-services.json
 }
 
 android {
     namespace = "com.eeg.pronosticapp"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.eeg.pronosticapp"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
 
-    signingConfigs {
-        create("release") {
-            if (keystorePropertiesFile.exists()) {
-                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
-        }
-    }
-
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 
     composeOptions {
@@ -80,7 +49,9 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 
-    // Authentification — Firebase (e-mail / mot de passe uniquement)
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-auth-ktx")
+    // Authentification Firebase (nouveau) — le BOM fixe les versions,
+    // pas besoin de version.ref sur les lignes firebase-* individuelles
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.play.services.tasks) // pour Tasks.await() dans RetrofitClient.kt
 }

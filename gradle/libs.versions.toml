@@ -1,5 +1,5 @@
 [versions]
-agp = "8.10.0"
+agp = "8.7.3"
 kotlin = "1.9.24"
 coreKtx = "1.13.1"
 activityCompose = "1.9.1"
@@ -8,6 +8,9 @@ lifecycleViewmodelCompose = "2.8.4"
 kotlinxCoroutines = "1.8.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
+googleServices = "4.4.2"
+firebaseBom = "33.5.1"
+playServicesTasks = "18.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -22,6 +25,12 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
+# Authentification Firebase (nouveau)
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+play-services-tasks = { group = "com.google.android.gms", name = "play-services-tasks", version.ref = "playServicesTasks" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

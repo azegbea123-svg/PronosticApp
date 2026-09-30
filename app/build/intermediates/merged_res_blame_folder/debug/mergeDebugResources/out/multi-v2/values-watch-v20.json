@@ -4,7 +4,7 @@
             "outputFile": "com.eeg.pronosticapp-mergeDebugResources-50:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\USER\\.gradle\\caches\\8.14.5\\transforms\\dec0020c363c7fbb305a96edcafbc863\\transformed\\play-services-auth-20.7.0\\res\\values-watch-v20\\values.xml",
+                    "source": "C:\\Users\\USER\\.gradle\\caches\\8.14.5\\transforms\\9b05650d25708bad6c8e1565c3fd3f9a\\transformed\\play-services-auth-20.7.0\\res\\values-watch-v20\\values.xml",
                     "from": {
                         "startLines": "4,5,6,7,8,9,10,11",
                         "startColumns": "0,0,0,0,0,0,0,0",

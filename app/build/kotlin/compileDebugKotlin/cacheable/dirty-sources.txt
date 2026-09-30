@@ -1,0 +1,14 @@
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\network\RetrofitClient.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\network\FirebaseAuthInterceptor.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\data\PreferencesTelephone.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\data\CompetitionsConnues.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\EcranAuthentification.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\Notifications.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\data\EquipesConnues.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\model\MatchModels.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\ui\theme\Theme.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\MainActivity.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\matchs\MatchsScreen.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\network\MockAnalysisProvider.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\ui\theme\Color.kt
+C:\Users\USER\Desktop\MEDIATHEQUE\projets\PronosticApp\app\src\main\java\com\eeg\pronosticapp\network\ApiService.kt
