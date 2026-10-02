@@ -20,6 +20,7 @@ import com.eeg.pronosticapp.network.RetrofitClient
 import com.eeg.pronosticapp.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 /** Validation simple : chiffres uniquement, + optionnel au début, 8 à 15 chiffres. */
 fun telephoneValide(tel: String): Boolean {
@@ -194,7 +195,12 @@ fun EcranAuthentification() {
                                             val uid = t.result?.user?.uid
                                             if (uid != null) {
                                                 context.getSharedPreferences("pronosticapp_prefs", android.content.Context.MODE_PRIVATE)
-                                                    .edit().putBoolean("telephone_confirme_$uid", true).apply()
+                                                    .edit {
+                                                        putBoolean(
+                                                            "telephone_confirme_$uid",
+                                                            true
+                                                        )
+                                                    }
                                             }
                                         }
                                     } catch (e: Exception) {
