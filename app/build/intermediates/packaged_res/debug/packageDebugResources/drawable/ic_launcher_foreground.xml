@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Barre gauche — domicile (doré, ton principal de l'appli) -->
+    <path
+        android:fillColor="#F5B942"
+        android:pathData="M28,50 L42,50 L42,80 L28,80 Z" />
+    <!-- Barre centrale — la plus haute (vert "domicile" du système de couleurs) -->
+    <path
+        android:fillColor="#3FA34D"
+        android:pathData="M47,34 L61,34 L61,80 L47,80 Z" />
+    <!-- Barre droite — la plus basse (orange "extérieur") -->
+    <path
+        android:fillColor="#E4572E"
+        android:pathData="M66,60 L80,60 L80,80 L66,80 Z" />
+</vector>

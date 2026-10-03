@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">680320730426-9h3nleokt3s7275ota10ba78ltudcnfs.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">680320730426</string>
+    <string name="google_api_key" translatable="false">AIzaSyCFCwSyAoPu-x_HK-pBrrWIrEv0P_0arUw</string>
+    <string name="google_app_id" translatable="false">1:680320730426:android:74f7f1caf42b8399d43c03</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCFCwSyAoPu-x_HK-pBrrWIrEv0P_0arUw</string>
+    <string name="google_storage_bucket" translatable="false">pronosticapp-8640d.firebasestorage.app</string>
+    <string name="project_id" translatable="false">pronosticapp-8640d</string>
+</resources>

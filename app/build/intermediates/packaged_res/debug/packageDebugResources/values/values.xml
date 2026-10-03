@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#10141C</color>
+    <color name="ember_orange">#E4572E</color>
+    <color name="floodlight_gold">#F5B942</color>
+    <color name="fond_app_clair">#F7F8FA</color>
+    <color name="ic_launcher_background">#10141C</color>
+    <color name="turf_green">#3FA34D</color>
+    <string name="app_name">PronoFoot</string>
+    <string name="default_web_client_id" translatable="false">680320730426-9h3nleokt3s7275ota10ba78ltudcnfs.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">680320730426</string>
+    <string name="google_api_key" translatable="false">AIzaSyCFCwSyAoPu-x_HK-pBrrWIrEv0P_0arUw</string>
+    <string name="google_app_id" translatable="false">1:680320730426:android:74f7f1caf42b8399d43c03</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCFCwSyAoPu-x_HK-pBrrWIrEv0P_0arUw</string>
+    <string name="google_storage_bucket" translatable="false">pronosticapp-8640d.firebasestorage.app</string>
+    <string name="project_id" translatable="false">pronosticapp-8640d</string>
+    <style name="Theme.PronosticApp" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fond_app_clair</item>
+        <item name="android:statusBarColor">@color/fond_app_clair</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
