@@ -42,6 +42,7 @@ import com.eeg.pronosticapp.network.RetrofitClient
 import com.eeg.pronosticapp.network.MockAnalysisProvider
 import com.eeg.pronosticapp.matchs.MatchsScreen
 import com.eeg.pronosticapp.ui.theme.*
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -59,10 +60,36 @@ class MainActivity : ComponentActivity() {
         setContent {
             PronosticAppTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    AppRoot()
+                    PorteAuthentification()
                 }
             }
         }
+    }
+}
+
+/**
+ * Affiche EcranAuthentification() tant que personne n'est connecté,
+ * AppRoot() une fois connecté — réagit automatiquement à la connexion
+ * ou déconnexion (pas besoin de navigation explicite depuis
+ * EcranAuthentification: dès que signInWithEmailAndPassword /
+ * createUserWithEmailAndPassword réussit, Firebase notifie cet
+ * écouteur et l'écran bascule tout seul).
+ */
+@Composable
+fun PorteAuthentification() {
+    var connecte by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
+
+    DisposableEffect(Unit) {
+        val auth = FirebaseAuth.getInstance()
+        val ecouteur = FirebaseAuth.AuthStateListener { a -> connecte = a.currentUser != null }
+        auth.addAuthStateListener(ecouteur)
+        onDispose { auth.removeAuthStateListener(ecouteur) }
+    }
+
+    if (connecte) {
+        AppRoot()
+    } else {
+        EcranAuthentification()
     }
 }
 

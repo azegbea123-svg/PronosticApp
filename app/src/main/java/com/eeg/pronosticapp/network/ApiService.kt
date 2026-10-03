@@ -7,6 +7,7 @@ import com.eeg.pronosticapp.model.MatchAnalysisResponse
 import com.eeg.pronosticapp.model.MatchsResponse
 import com.eeg.pronosticapp.model.PaiementRequest
 import com.eeg.pronosticapp.model.PaiementResponse
+import com.eeg.pronosticapp.model.ProfilRequest
 import com.eeg.pronosticapp.model.VipStatutResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -27,6 +28,11 @@ interface ApiService {
     suspend fun listerMatchs(
         @Query("jour") jour: String
     ): Response<MatchsResponse>
+
+    @POST("profil")
+    suspend fun majProfil(
+        @Body request: ProfilRequest
+    ): Response<Unit>
 
     @GET("vip/statut")
     suspend fun vipStatut(

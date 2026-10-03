@@ -20,6 +20,9 @@ data class MatchAnalysisResponse(
     val probabiliteVictoireEquipe1: Double,
     val probabiliteMatchNul: Double,
     val probabiliteVictoireEquipe2: Double,
+    val avisFiabiliteV1: String,
+    val avisFiabiliteNul: String,
+    val avisFiabiliteV2: String,
     val facteursCles: List<String>,
     val resumeAnalyse: String,
     val butsAttendusEquipe1: Double,
@@ -48,6 +51,12 @@ data class MatchItem(
 data class MatchsResponse(
     val jour: String, // YYYY-MM-DD
     val matchs: List<MatchItem>
+)
+
+// ---- Compte utilisateur ----
+
+data class ProfilRequest(
+    val telephone: String?
 )
 
 // ---- Système VIP ----
