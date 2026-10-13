@@ -4,6 +4,7 @@ import com.eeg.pronosticapp.model.ConfirmationRequest
 import com.eeg.pronosticapp.model.ConfirmationResponse
 import com.eeg.pronosticapp.model.MatchAnalysisRequest
 import com.eeg.pronosticapp.model.MatchAnalysisResponse
+import com.eeg.pronosticapp.model.MatchDetailResponse
 import com.eeg.pronosticapp.model.MatchsResponse
 import com.eeg.pronosticapp.model.PaiementRequest
 import com.eeg.pronosticapp.model.PaiementResponse
@@ -28,6 +29,23 @@ interface ApiService {
     suspend fun listerMatchs(
         @Query("jour") jour: String
     ): Response<MatchsResponse>
+
+    @GET("match/detail/{fixture_id}")
+    suspend fun detailMatch(
+        @retrofit2.http.Path("fixture_id") fixtureId: String
+    ): Response<MatchDetailResponse>
+
+    @GET("live")
+    suspend fun matchsEnDirect(): Response<Map<String, Any>>
+
+    @GET("ligues/populaires")
+    suspend fun liguesPopulaires(): Response<Map<String, Any>>
+
+    @GET("ligues/{league_id}/classement")
+    suspend fun classement(
+        @retrofit2.http.Path("league_id") leagueId: Int,
+        @Query("mode") mode: String = "all"
+    ): Response<Map<String, Any>>
 
     @POST("profil")
     suspend fun majProfil(

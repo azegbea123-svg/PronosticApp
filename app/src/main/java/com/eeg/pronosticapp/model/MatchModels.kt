@@ -33,19 +33,56 @@ data class MatchAnalysisResponse(
     val probabiliteOver25: Double,
     val scoresProbables: List<ScoreProbable>,
     val vip: Boolean,
-    val pronosticsRestantsAujourdhui: Int?
+    val pronosticsRestantsAujourdhui: Int?,
+    val predictionExterne: String? = null,
+    val sourcePredictionExterne: String? = null,
+    val probabilitePredictionExterne: Double? = null,
+    val confianceGlobale: Double? = null
 )
 
 // ---- Liste de matchs J / J+1 (nouvelle approche) ----
 
 data class MatchItem(
-    val fixture_id: Long,
+    val fixture_id: String,
+    val event_id: Int? = null,
     val date: String,
     val league_id: Int,
     val league: String,
-    val equipe1: String, // domicile
-    val equipe2: String, // extérieur
-    val donneesDisponibles: Boolean? // null = vérification en cours, pas encore cliquable
+    val equipe1: String,
+    val equipe2: String,
+    val donneesDisponibles: Boolean?
+)
+
+data class MatchStatRow(
+    val label: String,
+    val home: String,
+    val away: String
+)
+
+data class H2HMatch(
+    val date: String?,
+    val home: String?,
+    val away: String?,
+    val score: String?,
+    val league: String?
+)
+
+data class MatchDetailResponse(
+    val fixture_id: String,
+    val event_id: Int?,
+    val date: String?,
+    val league: String?,
+    val equipe1: String,
+    val equipe2: String,
+    val statut: Map<String, Any>?,
+    val score: List<Map<String, Any>> = emptyList(),
+    val statistiques: List<Map<String, Any>> = emptyList(),
+    val statistiquesTop: List<MatchStatRow> = emptyList(),
+    val confrontations: Map<String, Any>?,
+    val h2hRecents: List<H2HMatch> = emptyList(),
+    val compositions: Map<String, Any> = emptyMap(),
+    val formations: Map<String, Any> = emptyMap(),
+    val detail: Map<String, Any>?
 )
 
 data class MatchsResponse(
