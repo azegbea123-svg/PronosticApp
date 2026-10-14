@@ -13,7 +13,7 @@ object RetrofitClient {
     private const val BASE_URL = "https://pronosticapp-backend.onrender.com/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BASIC
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val okHttpClient = OkHttpClient.Builder()
@@ -26,8 +26,8 @@ object RetrofitClient {
         // directe). Des délais trop courts (défaut OkHttp : 10s)
         // provoquaient des erreurs réseau qui n'en étaient pas vraiment.
         .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(90, TimeUnit.SECONDS)
-        .writeTimeout(90, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     val apiService: ApiService by lazy {

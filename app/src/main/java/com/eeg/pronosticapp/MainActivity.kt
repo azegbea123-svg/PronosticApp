@@ -41,6 +41,7 @@ import com.eeg.pronosticapp.model.PaiementRequest
 import com.eeg.pronosticapp.network.RetrofitClient
 import com.eeg.pronosticapp.network.MockAnalysisProvider
 import com.eeg.pronosticapp.matchs.MatchsScreen
+import com.eeg.pronosticapp.esport.EsportScreen
 import com.eeg.pronosticapp.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -98,7 +99,7 @@ fun AppRoot() {
     // Bascule simple entre la nouvelle liste de matchs et l'ancienne
     // saisie manuelle — pas de librairie de navigation nécessaire pour
     // seulement deux écrans.
-    var ongletActif by remember { mutableIntStateOf(0) } // 0 = liste des matchs, 1 = saisie manuelle
+    var ongletActif by remember { mutableIntStateOf(0) } // 0 = liste des matchs, 1 = saisie manuelle, 2 = esport
 
     Column(Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = ongletActif) {
@@ -112,9 +113,15 @@ fun AppRoot() {
                 onClick = { ongletActif = 1 },
                 text = { Text("Saisie manuelle") }
             )
+            Tab(
+                selected = ongletActif == 2,
+                onClick = { ongletActif = 2 },
+                text = { Text("Esport") }
+            )
         }
         when (ongletActif) {
             0 -> MatchsScreen()
+            2 -> EsportScreen()
             else -> PronosticScreen()
         }
     }

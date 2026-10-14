@@ -25,3 +25,6 @@ val TextFaint = Color(0xFF9AA3B0)
 // Texte/icônes posés sur un fond doré ou coloré (boutons, badges) — a
 // besoin d'un fort contraste, distinct du fond de page qui est clair.
 val TextOnAccent = Color(0xFF1B1F27)
+
+// Match en direct (pastille pulsante, minute)
+val LiveRed = Color(0xFFE5393A)

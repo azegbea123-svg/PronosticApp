@@ -49,6 +49,9 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 
+    // Logos d'équipes et de championnats (cache disque/mémoire inclus)
+    implementation(libs.coil.compose)
+
     // Authentification Firebase (nouveau) — le BOM fixe les versions,
     // pas besoin de version.ref sur les lignes firebase-* individuelles
     implementation(platform(libs.firebase.bom))
