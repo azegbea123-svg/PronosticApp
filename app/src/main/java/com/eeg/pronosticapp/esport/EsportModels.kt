@@ -1,7 +1,7 @@
 package com.eeg.pronosticapp.esport
 
 /**
- * Modèles du module esport (réponses de /esport/* du backend).
+ * Modèles du module esport (réponses des routes « esport/… » du backend).
  * Tous les champs susceptibles d'être absents sont nullables : Gson laisse
  * simplement `null` quand une clé manque.
  */

@@ -14,7 +14,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
-/** Endpoints /esport/* du backend (AJOUT : ApiService existant non modifié). */
+/** Endpoints esport du backend (chemins « esport/… ») (AJOUT : ApiService existant non modifié). */
 interface EsportApi {
     @GET("esport/jeux")
     suspend fun jeux(): Response<EsportJeuxResponse>
