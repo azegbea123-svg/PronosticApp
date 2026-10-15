@@ -55,6 +55,7 @@ fun EsportScreen() {
     var conseil by remember { mutableStateOf<String?>(null) }
     var statutChoisi by remember { mutableStateOf(FiltreStatut.TOUS) }
     var bilan by remember { mutableStateOf<EsportBilan?>(null) }
+    var historique by remember { mutableStateOf<EsportHistorique?>(null) }
     var chargement by remember { mutableStateOf(true) }
     var erreur by remember { mutableStateOf<String?>(null) }
     var selection by remember { mutableStateOf<EsportMatch?>(null) }
@@ -69,6 +70,7 @@ fun EsportScreen() {
                 matchs = corps?.matchs ?: emptyList()
                 quota = corps?.quota
                 conseil = corps?.conseil
+                historique = corps?.historique
             } else {
                 erreur = EsportClient.messageErreur(r)
             }
@@ -138,6 +140,14 @@ fun EsportScreen() {
             }
         }
         bilan?.takeIf { it.verifies > 0 || it.en_attente > 0 }?.let { b -> BandeauBilan(b) }
+        historique?.takeIf { it.jours_couverts < it.jours_cibles }?.let { h ->
+            Text(
+                "Historique mémorisé : ${h.jours_couverts}/${h.jours_cibles} jours. La fiabilité des pronostics grandit chaque jour.",
+                color = TextFaint,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
+            )
+        }
         if (visibles.isNotEmpty() && conseil != null) {
             Text(
                 conseil ?: "",
@@ -319,11 +329,72 @@ private fun CarteEsport(m: EsportMatch, onClick: () -> Unit) {
             )
             LigneEquipeEsport(m.equipe1.nom, m.score1, termine && m.vainqueur == 1, if (enDirect) LiveRed else TextPrimary)
             LigneEquipeEsport(m.equipe2.nom, m.score2, termine && m.vainqueur == 2, if (enDirect) LiveRed else TextPrimary)
+            LignePronostic(m)
         }
         m.best_of?.let {
             Spacer(Modifier.width(8.dp))
             Text("BO$it", color = FloodlightGoldDim, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+private fun poidsBarre(p: Double): Float = p.toFloat().coerceAtLeast(0.04f)
+
+private fun couleurConfiance(confiance: String): Color = when (confiance) {
+    "bonne" -> TurfGreen
+    "moyenne" -> FloodlightGold
+    else -> EmberOrange
+}
+
+private fun nomFavori(m: EsportMatch, favori: Int): String = when (favori) {
+    1 -> m.equipe1.nom
+    2 -> m.equipe2.nom
+    else -> "Nul"
+}
+
+/** Pronostic affiché directement sous les équipes : aucun clic, aucune requête de l'appli. */
+@Composable
+private fun LignePronostic(m: EsportMatch) {
+    val p = m.pronostic
+    if (p == null) {
+        if (m.pronostic_raison != null && (m.statut == "prevu" || m.statut == "inconnu")) {
+            Text("Pronostic indisponible : historique insuffisant", color = TextFaint, fontSize = 10.sp)
+        }
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "${(p.p1 * 100).toInt()} %",
+                color = if (p.favori == 1) TurfGreen else TextMuted,
+                fontWeight = if (p.favori == 1) FontWeight.Bold else FontWeight.Normal,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.width(8.dp))
+            Row(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp))) {
+                Box(Modifier.weight(poidsBarre(p.p1)).fillMaxHeight().background(TurfGreen))
+                if (p.pnul > 0.0) Box(Modifier.weight(poidsBarre(p.pnul)).fillMaxHeight().background(NeutralDraw))
+                Box(Modifier.weight(poidsBarre(p.p2)).fillMaxHeight().background(EmberOrange))
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "${(p.p2 * 100).toInt()} %",
+                color = if (p.favori == 2) EmberOrange else TextMuted,
+                fontWeight = if (p.favori == 2) FontWeight.Bold else FontWeight.Normal,
+                fontSize = 12.sp
+            )
+        }
+        val verdict = when (p.correct) {
+            true -> " · ✓ pronostic juste"
+            false -> " · ✗ pronostic raté"
+            null -> ""
+        }
+        Text(
+            "Favori : ${nomFavori(m, p.favori)} · confiance ${p.confiance}$verdict",
+            color = couleurConfiance(p.confiance),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -349,7 +420,6 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
     val scope = rememberCoroutineScope()
     var match by remember { mutableStateOf(initial) }
     var detail by remember { mutableStateOf<EsportDetail?>(null) }
-    var pronostic by remember { mutableStateOf<EsportPronostic?>(null) }
     var erreur by remember { mutableStateOf<String?>(null) }
     var occupe by remember { mutableStateOf(false) }
 
@@ -360,26 +430,15 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
             val r = EsportClient.api.detail(match.id, avec)
             if (r.isSuccessful) {
                 r.body()?.let { d ->
-                    match = d.match
+                    // Le détail ne contient pas le pronostic : on conserve celui de la liste.
+                    match = d.match.copy(
+                        favori = match.favori,
+                        pronostic = match.pronostic,
+                        pronostic_raison = match.pronostic_raison
+                    )
                     detail = d
                 }
             } else erreur = EsportClient.messageErreur(r)
-        } catch (e: Exception) {
-            erreur = "Erreur réseau : ${e.message}"
-        } finally {
-            occupe = false
-        }
-    }
-
-    suspend fun pronostiquer() {
-        occupe = true
-        erreur = null
-        try {
-            val r = EsportClient.api.pronostic(EsportPronosticRequest(match.id))
-            if (r.isSuccessful) pronostic = r.body()
-            else erreur = if (r.code() == 429)
-                "Limite de 3 analyses gratuites atteinte pour aujourd'hui. Passe en VIP pour continuer."
-            else EsportClient.messageErreur(r)
         } catch (e: Exception) {
             erreur = "Erreur réseau : ${e.message}"
         } finally {
@@ -425,19 +484,23 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
             modifier = Modifier.heightIn(max = 380.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            pronostic?.let { p ->
-                BarreProbabilitesEsport(p.probabiliteVictoireEquipe1, p.probabiliteMatchNul, p.probabiliteVictoireEquipe2)
+            match.pronostic?.let { p ->
+                BarreProbabilitesEsport(p.p1, p.pnul, p.p2)
                 Text(
-                    "Confiance : ${p.confiance}" + if (p.deja_calcule == true) " · pronostic figé" else "",
-                    color = when (p.confiance) { "bonne" -> TurfGreen; "moyenne" -> FloodlightGold; else -> EmberOrange },
-                    fontWeight = FontWeight.Bold, fontSize = 12.sp
+                    "Favori : ${nomFavori(match, p.favori)} · confiance ${p.confiance}" +
+                        (if (p.gele) " · pronostic figé avant le match" else " · calculé pendant le match (non compté au bilan)"),
+                    color = couleurConfiance(p.confiance), fontWeight = FontWeight.Bold, fontSize = 12.sp
                 )
-                p.facteurs.forEach { Text("• $it", color = TextMuted, fontSize = 12.sp) }
-                p.limites.forEach { Text("ℹ️ $it", color = TextFaint, fontSize = 11.sp) }
-                if (p.vip == false && p.pronosticsRestantsAujourdhui != null) {
-                    Text("🎟️ ${p.pronosticsRestantsAujourdhui} analyse(s) gratuite(s) restante(s) aujourd'hui",
-                        color = FloodlightGoldDim, fontSize = 12.sp)
+                p.details?.let { d ->
+                    Text(
+                        "Classement Elo : ${d.elo1 ?: 0} contre ${d.elo2 ?: 0} · ${d.matchs1 ?: 0} et ${d.matchs2 ?: 0} matchs analysés",
+                        color = TextMuted, fontSize = 12.sp
+                    )
                 }
+                p.limites.forEach { Text("ℹ️ $it", color = TextFaint, fontSize = 11.sp) }
+            }
+            if (match.pronostic == null && match.pronostic_raison != null) {
+                Text(match.pronostic_raison ?: "", color = TextFaint, fontSize = 12.sp)
             }
             detail?.cartes?.takeIf { it.isNotEmpty() }?.let { cartes ->
                 Text("CARTES", color = TextFaint, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -457,15 +520,6 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
             }
         }
 
-        val prevu = match.statut == "prevu" || match.statut == "inconnu"
-        if (prevu && pronostic == null) {
-            Button(
-                onClick = { scope.launch { pronostiquer() } },
-                enabled = !occupe,
-                colors = ButtonDefaults.buttonColors(containerColor = FloodlightGold, contentColor = TextOnAccent),
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Pronostiquer", fontWeight = FontWeight.Bold) }
-        }
         OutlinedButton(
             onClick = { scope.launch { actualiser(if (detail == null) "cartes,duel" else "") } },
             enabled = !occupe,

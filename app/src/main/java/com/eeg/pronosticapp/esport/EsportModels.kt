@@ -29,7 +29,30 @@ data class EsportMatch(
     val score1: Int? = null,        // CARTES gagnées dans la série
     val score2: Int? = null,
     val vainqueur: Int? = null,     // 1, 2 (ou 3 = nul)
-    val favori: Boolean = false     // une des deux équipes est suivie côté serveur
+    val favori: Boolean = false,    // une des deux équipes est suivie côté serveur
+    val pronostic: EsportPronostic? = null,   // calculé par le serveur, déjà là dans la liste (aucun clic)
+    val pronostic_raison: String? = null      // pourquoi il n'y en a pas (historique insuffisant...)
+)
+
+/** Pronostic d'un match, fourni directement avec le match. */
+data class EsportPronostic(
+    val p1: Double,
+    val pnul: Double,
+    val p2: Double,
+    val favori: Int,                 // 1, 2 ou 3 (nul)
+    val confiance: String,           // faible | moyenne | bonne
+    val gele: Boolean = true,        // figé avant le début du match (compté dans le bilan)
+    val correct: Boolean? = null,    // match terminé : le favori a-t-il gagné ?
+    val details: EsportDetailsElo? = null,
+    val limites: List<String> = emptyList()
+)
+
+data class EsportDetailsElo(
+    val elo1: Int? = null,
+    val elo2: Int? = null,
+    val matchs1: Int? = null,
+    val matchs2: Int? = null,
+    val jours_depuis_dernier_match: Int? = null
 )
 
 data class EsportQuota(
@@ -42,8 +65,15 @@ data class EsportMatchsResponse(
     val matchs: List<EsportMatch> = emptyList(),
     val jeux_en_echec: List<String> = emptyList(), // jeux dont la liste n'a pas pu être chargée (quota, réseau)
     val direct_disponible: Boolean = true,
+    val historique: EsportHistorique? = null,
     val quota: EsportQuota? = null,
     val conseil: String? = null
+)
+
+data class EsportHistorique(
+    val jours_couverts: Int = 0,
+    val jours_cibles: Int = 0,
+    val matchs_memorises: Int = 0
 )
 
 data class EsportJeu(val jeu: String?, val nom: String?, val categorie_id: Int? = null, val equipes: Int = 0)
@@ -69,24 +99,6 @@ data class EsportDetail(
     val cartes: List<EsportCarte>? = null,
     val duel: EsportDuel? = null,
     val votes: EsportVotes? = null
-)
-
-data class EsportPronosticRequest(val eventId: Long)
-
-data class EsportPronostic(
-    val eventId: Long,
-    val equipe1: String,
-    val equipe2: String,
-    val best_of: Int? = null,
-    val probabiliteVictoireEquipe1: Double,
-    val probabiliteMatchNul: Double,
-    val probabiliteVictoireEquipe2: Double,
-    val confiance: String,                      // faible | moyenne | bonne
-    val facteurs: List<String> = emptyList(),
-    val limites: List<String> = emptyList(),
-    val deja_calcule: Boolean? = null,
-    val vip: Boolean? = null,
-    val pronosticsRestantsAujourdhui: Int? = null
 )
 
 data class EsportBilan(

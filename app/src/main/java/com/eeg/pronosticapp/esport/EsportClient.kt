@@ -7,9 +7,7 @@ import org.json.JSONObject
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
@@ -19,16 +17,13 @@ interface EsportApi {
     @GET("esport/jeux")
     suspend fun jeux(): Response<EsportJeuxResponse>
 
-    // Mise en cache 3 h côté serveur : appeler souvent ne coûte rien en quota API.
+    // Chaque match arrive AVEC son pronostic. Cache persistant côté serveur : ouvrir l'écran souvent ne coûte rien en quota.
     @GET("esport/matchs")
     suspend fun matchs(@Query("jeu") jeu: String? = null): Response<EsportMatchsResponse>
 
     // avec = "cartes,duel,votes" (chacun coûte 1 appel API côté serveur) ; vide = match seul.
     @GET("esport/match/{id}")
     suspend fun detail(@Path("id") id: Long, @Query("avec") avec: String = ""): Response<EsportDetail>
-
-    @POST("esport/pronostic")
-    suspend fun pronostic(@Body requete: EsportPronosticRequest): Response<EsportPronostic>
 
     @GET("esport/bilan")
     suspend fun bilan(): Response<EsportBilan>
