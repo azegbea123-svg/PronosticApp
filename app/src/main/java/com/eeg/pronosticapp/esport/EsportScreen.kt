@@ -140,23 +140,23 @@ fun EsportScreen() {
             }
         }
         bilan?.takeIf { it.verifies > 0 || it.en_attente > 0 }?.let { b -> BandeauBilan(b) }
-        historique?.takeIf { it.jours_couverts < it.jours_cibles }?.let { h ->
-            Text(
-                "Historique mémorisé : ${h.jours_couverts}/${h.jours_cibles} jours. La fiabilité des pronostics grandit chaque jour.",
-                color = TextFaint,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
-            )
+        historique?.let { h ->
+            if (!h.amorcage_termine) {
+                Text(
+                    "Préparation des pronostics : ${h.matchs_memorises} matchs mémorisés. Le serveur récupère l'historique à chaque actualisation ; les pronostics apparaissent au fur et à mesure.",
+                    color = EmberOrange,
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
+                )
+            } else if (h.jours_couverts < h.jours_cibles) {
+                Text(
+                    "Historique : ${h.jours_couverts}/${h.jours_cibles} jours mémorisés. La fiabilité des pronostics grandit chaque jour.",
+                    color = TextFaint,
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
+                )
+            }
         }
-        if (visibles.isNotEmpty() && conseil != null) {
-            Text(
-                conseil ?: "",
-                color = TextFaint,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
-            )
-        }
-
         when {
             chargement -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator(color = FloodlightGold)
@@ -358,7 +358,7 @@ private fun LignePronostic(m: EsportMatch) {
     val p = m.pronostic
     if (p == null) {
         if (m.pronostic_raison != null && (m.statut == "prevu" || m.statut == "inconnu")) {
-            Text("Pronostic indisponible : historique insuffisant", color = TextFaint, fontSize = 10.sp)
+            Text("Pronostic en préparation : pas assez de matchs connus pour ces équipes", color = TextMuted, fontSize = 11.sp)
         }
         return
     }

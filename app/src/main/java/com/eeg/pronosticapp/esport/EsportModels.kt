@@ -73,7 +73,8 @@ data class EsportMatchsResponse(
 data class EsportHistorique(
     val jours_couverts: Int = 0,
     val jours_cibles: Int = 0,
-    val matchs_memorises: Int = 0
+    val matchs_memorises: Int = 0,
+    val amorcage_termine: Boolean = true   // faux : le serveur construit encore l'historique de départ
 )
 
 data class EsportJeu(val jeu: String?, val nom: String?, val categorie_id: Int? = null, val equipes: Int = 0)
