@@ -141,21 +141,12 @@ fun EsportScreen() {
         }
         bilan?.takeIf { it.verifies > 0 || it.en_attente > 0 }?.let { b -> BandeauBilan(b) }
         historique?.let { h ->
-            if (!h.amorcage_termine) {
-                Text(
-                    "Préparation des pronostics : ${h.matchs_memorises} matchs mémorisés. Le serveur récupère l'historique à chaque actualisation ; les pronostics apparaissent au fur et à mesure.",
-                    color = EmberOrange,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
-                )
-            } else if (h.jours_couverts < h.jours_cibles) {
-                Text(
-                    "Historique : ${h.jours_couverts}/${h.jours_cibles} jours mémorisés. La fiabilité des pronostics grandit chaque jour.",
-                    color = TextFaint,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
-                )
-            }
+            Text(
+                "Historique mémorisé : ${h.matchs_memorises} matchs. Chaque actualisation l'enrichit et affine les pronostics.",
+                color = TextFaint,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 6.dp)
+            )
         }
         when {
             chargement -> Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -346,22 +337,17 @@ private fun couleurConfiance(confiance: String): Color = when (confiance) {
     else -> EmberOrange
 }
 
-private fun nomFavori(m: EsportMatch, favori: Int): String = when (favori) {
-    1 -> m.equipe1.nom
-    2 -> m.equipe2.nom
-    else -> "Nul"
+private fun libelleFavori(m: EsportMatch, favori: Int): String = when (favori) {
+    1 -> "Favori : ${m.equipe1.nom}"
+    2 -> "Favori : ${m.equipe2.nom}"
+    3 -> "Nul le plus probable"
+    else -> "Match équilibré"
 }
 
 /** Pronostic affiché directement sous les équipes : aucun clic, aucune requête de l'appli. */
 @Composable
 private fun LignePronostic(m: EsportMatch) {
-    val p = m.pronostic
-    if (p == null) {
-        if (m.pronostic_raison != null && (m.statut == "prevu" || m.statut == "inconnu")) {
-            Text("Pronostic en préparation : pas assez de matchs connus pour ces équipes", color = TextMuted, fontSize = 11.sp)
-        }
-        return
-    }
+    val p = m.pronostic ?: return  // un pronostic est toujours fourni pour un match à venir ou en cours
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -390,7 +376,7 @@ private fun LignePronostic(m: EsportMatch) {
             null -> ""
         }
         Text(
-            "Favori : ${nomFavori(m, p.favori)} · confiance ${p.confiance}$verdict",
+            "${libelleFavori(m, p.favori)} · confiance ${p.confiance}$verdict",
             color = couleurConfiance(p.confiance),
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold
@@ -433,8 +419,7 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
                     // Le détail ne contient pas le pronostic : on conserve celui de la liste.
                     match = d.match.copy(
                         favori = match.favori,
-                        pronostic = match.pronostic,
-                        pronostic_raison = match.pronostic_raison
+                        pronostic = match.pronostic
                     )
                     detail = d
                 }
@@ -487,10 +472,13 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
             match.pronostic?.let { p ->
                 BarreProbabilitesEsport(p.p1, p.pnul, p.p2)
                 Text(
-                    "Favori : ${nomFavori(match, p.favori)} · confiance ${p.confiance}" +
+                    "${libelleFavori(match, p.favori)} · confiance ${p.confiance}" +
                         (if (p.gele) " · pronostic figé avant le match" else " · calculé pendant le match (non compté au bilan)"),
                     color = couleurConfiance(p.confiance), fontWeight = FontWeight.Bold, fontSize = 12.sp
                 )
+                if (!p.donnees_suffisantes) {
+                    Text("Peu de matchs connus pour au moins une des équipes : à prendre avec prudence.", color = TextMuted, fontSize = 11.sp)
+                }
                 p.details?.let { d ->
                     Text(
                         "Classement Elo : ${d.elo1 ?: 0} contre ${d.elo2 ?: 0} · ${d.matchs1 ?: 0} et ${d.matchs2 ?: 0} matchs analysés",
@@ -498,9 +486,6 @@ private fun DialogueEsport(initial: EsportMatch, onFermer: () -> Unit) {
                     )
                 }
                 p.limites.forEach { Text("ℹ️ $it", color = TextFaint, fontSize = 11.sp) }
-            }
-            if (match.pronostic == null && match.pronostic_raison != null) {
-                Text(match.pronostic_raison ?: "", color = TextFaint, fontSize = 12.sp)
             }
             detail?.cartes?.takeIf { it.isNotEmpty() }?.let { cartes ->
                 Text("CARTES", color = TextFaint, fontSize = 10.sp, fontWeight = FontWeight.Bold)

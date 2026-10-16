@@ -30,8 +30,7 @@ data class EsportMatch(
     val score2: Int? = null,
     val vainqueur: Int? = null,     // 1, 2 (ou 3 = nul)
     val favori: Boolean = false,    // une des deux équipes est suivie côté serveur
-    val pronostic: EsportPronostic? = null,   // calculé par le serveur, déjà là dans la liste (aucun clic)
-    val pronostic_raison: String? = null      // pourquoi il n'y en a pas (historique insuffisant...)
+    val pronostic: EsportPronostic? = null    // calculé par le serveur, déjà là dans la liste (aucun clic)
 )
 
 /** Pronostic d'un match, fourni directement avec le match. */
@@ -39,8 +38,9 @@ data class EsportPronostic(
     val p1: Double,
     val pnul: Double,
     val p2: Double,
-    val favori: Int,                 // 1, 2 ou 3 (nul)
+    val favori: Int,                 // 1, 2, 3 (nul) ou 0 (match équilibré)
     val confiance: String,           // faible | moyenne | bonne
+    val donnees_suffisantes: Boolean = true,  // faux : peu de matchs connus pour une des équipes
     val gele: Boolean = true,        // figé avant le début du match (compté dans le bilan)
     val correct: Boolean? = null,    // match terminé : le favori a-t-il gagné ?
     val details: EsportDetailsElo? = null,
@@ -107,6 +107,9 @@ data class EsportBilan(
     val en_attente: Int = 0,
     val precision: Double? = null,
     val brier: Double? = null,
+    val equilibres: Int = 0,
+    val precision_donnees_suffisantes: Double? = null,
+    val verifies_donnees_suffisantes: Int = 0,
     val fiable: Boolean = false,
     val note: String = ""
 )
